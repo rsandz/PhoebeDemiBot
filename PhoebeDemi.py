@@ -1,13 +1,17 @@
+from ast import arg
 import discord
 from discord.utils import get
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
+import random
+
+from torch import rand
 
 intents = discord.Intents.default()
 intents.members = True
 
-client = commands.Bot(command_prefix = '!', intents=intents)
+client = commands.Bot(command_prefix = '.', intents=intents)
 
 load_dotenv()
 gender_message = os.getenv('GENDER_MESSAGE')
@@ -98,6 +102,53 @@ async def on_raw_reaction_remove(payload):
             role = get(server.roles, name=colour_roles[emoji])
             await member.remove_roles(role)
 
+
+@client.command()
+async def question(ctx, *args):
+    answer = random.randint(0,6)
+
+    if len(args) < 1:
+        await ctx.channel.send("you need to ask a question, silly!")
+        return
+
+    if answer == 1:
+        await ctx.channel.send("absolutely!")
+    elif answer == 2:
+        await ctx.channel.send("yes")
+    elif answer == 3:
+        await ctx.channel.send("possibly...")
+    elif answer == 4:
+        await ctx.channel.send("not sure...")
+    elif answer == 5:
+        await ctx.channel.send("don't count on it")
+    elif answer == 6: 
+        await ctx.channel.send("no")
+    elif answer == 0:
+        await ctx.channel.send("definitely not!")
+
+
+@client.command()
+async def quote(ctx, *args): 
+    n = 1
+    if len(args) > 0 and str.isdigit(args[0]):
+        if (int(args[0]) > 5):
+            await ctx.channel.send("I can only give up to 5 quotes at a time.")
+            return
+        n = int(args[0])
+    with open('quotes.txt', 'r') as f:
+        quotes = [line.strip() for line in f]
+        for i in range(n):
+            quote = random.choice(quotes)
+            await ctx.channel.send(quote)
+
+@client.command()
+async def recommend(ctx, *args): 
+    with open('recommend.txt', 'r') as f:
+        recs = [line.strip() for line in f]
+        choice = random.randint(0, (len(recs) / 2) - 1)
+        await ctx.channel.send(recs[choice * 2])
+        await ctx.channel.send(recs[(choice * 2)+ 1])
+        
 
 
 client.run(os.getenv('DISCORD_TOKEN'))
