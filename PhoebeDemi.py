@@ -1,10 +1,11 @@
 from ast import arg
 import discord
 from discord.utils import get
-from discord.ext import commands
+from discord.ext import tasks, commands
 import os
 from dotenv import load_dotenv
 import random
+from datetime import datetime
 
 from torch import rand
 
@@ -20,6 +21,7 @@ colour_message = os.getenv('COLOUR_MESSAGE')
 welcome_channel = os.getenv('WELCOME_CHANNEL')
 server_id = os.getenv('SERVER_ID')
 
+messageList = {}
 
 gender_roles = {
     '❤️' : 'he/him',
@@ -39,6 +41,7 @@ colour_emoji_list = colour_roles.keys()
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+    sendTimedMessages.start()
 
 @client.event
 async def on_member_join(member):
@@ -148,7 +151,83 @@ async def recommend(ctx, *args):
         choice = random.randint(0, (len(recs) / 2) - 1)
         await ctx.channel.send(recs[choice * 2])
         await ctx.channel.send(recs[(choice * 2)+ 1])
+      
         
+@client.command()
+@commands.has_role('Ya Boi')
+async def stage(ctx, *args):
+    if len(args) <= 2:
+        await ctx.channel.send("Not enough arguments" )
+        return
+
+    date = args[0]
+    time = args[1]
+
+    try:
+        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S")
+    except:
+        await ctx.channel.send("Date and time incorrect. Format: `y-m-d h:m:s`" )
+        return
+
+    message = ""
+    if args[2] == "$":
+        message = "@everyone, A new episode of Warp Speed and Witchcraft is out! https://www.webtoons.com/en/challenge/warp-speed-and-witchcraft/convention-con-4/viewer?title_no=644747&episode_no=" + args[3]
+
+    else:
+        for i in  range(2, len(args)):
+            message = message + args[i]
+    
+    allowed_mentions = discord.AllowedMentions(everyone = True)
+    messageList[dateTime] = message
+    await ctx.channel.send("Staged Message: " + "`" + str(dateTime) + " : " + messageList[dateTime] + "`", allowed_mentions = allowed_mentions)
+
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def stageList(ctx):
+    if len(messageList) == 0:
+        await ctx.channel.send("No messages staged")
+        return
+    for message in messageList:
+        await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
+
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def dropStage(ctx, *args):
+    date = args[0]
+    time = args[1]
+    try:
+        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S")
+        del messageList[dateTime]
+    except:
+        await ctx.channel.send("That doesn't exist")
+
+    await ctx.channel.send("Stage List:" )
+    for message in messageList:
+        await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
+
+
+
+
+@tasks.loop(minutes=5.0)
+async def sendTimedMessages():
+    print("timed")
+    server = client.guilds[0]
+    for message in messageList:
+        if message <= datetime.now():
+            channel = get(server.channels, name='announcements')
+            await channel.send(messageList[message])
+            del messageList[message]
+            return
+
+
+# https://stackoverflow.com/questions/43465082/python-discord-py-delete-all-messages-in-a-text-channel
+@client.command(pass_context = True)
+@commands.has_role('Ya Boi')
+async def clear(ctx, amount = 1000):
+    await ctx.channel.purge(limit=amount)
 
 
 client.run(os.getenv('DISCORD_TOKEN'))
+
