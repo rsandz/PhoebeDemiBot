@@ -13,6 +13,7 @@ load_dotenv()
 gender_message = os.getenv('GENDER_MESSAGE')
 creator_message = os.getenv('CREATOR_MESSAGE')
 colour_message = os.getenv('COLOUR_MESSAGE')
+welcome_channel = os.getenv('WELCOME_CHANNEL')
 server_id = os.getenv('SERVER_ID')
 
 
@@ -31,12 +32,20 @@ colour_roles = {
 }
 colour_emoji_list = colour_roles.keys()
 
-
-command_prefix = "!"
-
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+
+@client.event
+async def on_member_join(member):
+    server = client.guilds[0]
+    channel = client.get_channel(int(welcome_channel))
+    rules = get(server.channels, name='rules')
+    intro = get(server.channels, name='introduce-yourself')
+    role = get(server.channels, name='role-picker')
+
+    message = "Hello {member.mention}! Welcome to the Official Warp Speed and Witchcraft Server! Consider checking out {rules.mention}, giving yourself a role in {role.mention}, and introducing yourself in {intro.mention}!"
+    await channel.send(message.format(member = member, rules = rules, intro = intro, role = role))
 
 @client.event
 async def on_raw_reaction_add(payload):
