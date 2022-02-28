@@ -4,7 +4,7 @@ from discord.ext import tasks, commands
 import os
 from dotenv import load_dotenv
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 intents = discord.Intents.default()
 intents.members = True
@@ -34,6 +34,9 @@ colour_roles = {
     '🚀' : 'From the Far Future'
 }
 colour_emoji_list = colour_roles.keys()
+
+timezone_offset = -7.0
+tzinfo = timezone(timedelta(hours=timezone_offset))
 
 @client.event
 async def on_ready():
@@ -212,7 +215,7 @@ async def sendTimedMessages():
     print("timed")
     server = client.guilds[0]
     for message in messageList:
-        if message <= datetime.now():
+        if message <= datetime.now(tzinfo):
             channel = get(server.channels, name='announcements')
             await channel.send(messageList[message])
             del messageList[message]
@@ -229,7 +232,7 @@ async def clear(ctx, amount = 1000):
 @client.command()
 @commands.has_role('Ya Boi')
 async def time(ctx):
-     await ctx.channel.send("The current bot time is: " + str(datetime.now()))
+     await ctx.channel.send("The current bot time is: " + str(datetime.now(tzinfo)))
 
 client.run(os.getenv('DISCORD_TOKEN'))
 
