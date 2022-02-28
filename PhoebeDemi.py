@@ -223,7 +223,7 @@ async def stage(ctx, *args):
     time = args[1]
 
     try:
-        dateTime = tzinfo.localize(datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S"))
+        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S").astimezone(tzinfo)
     except:
         await ctx.channel.send("Date and time incorrect. Format: `y-m-d h:m:s`" )
         return
@@ -260,7 +260,7 @@ async def dropstage(ctx, *args):
     date = args[0]
     time = args[1]
     try:
-        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S")
+        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S").astimezone(tzinfo)
         del messageList[dateTime]
     except:
         await ctx.channel.send("That doesn't exist")
