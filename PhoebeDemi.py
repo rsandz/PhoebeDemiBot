@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 import random
 from datetime import datetime, timezone, timedelta
-from pyparsing import line
 import pytz
 
 intents = discord.Intents.default()
