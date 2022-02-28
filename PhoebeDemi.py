@@ -207,7 +207,7 @@ async def dropStage(ctx, *args):
 
 
 
-@tasks.loop(seconds=5.0)
+@tasks.loop(minutes=5.0)
 async def sendTimedMessages():
     print("timed")
     server = client.guilds[0]
