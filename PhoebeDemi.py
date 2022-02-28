@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 import random
 from datetime import datetime, timezone, timedelta
+from pyparsing import line
+import pytz
 
 intents = discord.Intents.default()
 intents.members = True
@@ -141,6 +143,37 @@ async def quote(ctx, *args):
             quote = random.choice(quotes)
             await ctx.channel.send(quote)
 
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def quotes(ctx):
+    await ctx.send(file=discord.File('quotes.txt'))
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def newquote(ctx, *args):
+    line = " ".join(args)
+    f = open("quotes.txt", "a")
+    f.write("\n")
+    f.write(line)
+    f.close()
+    await ctx.channel.send("new quote added: `" + line + "`")
+
+#https://stackoverflow.com/questions/1877999/delete-final-line-in-file-with-python
+@client.command()
+@commands.has_role('Ya Boi')
+async def deletequote(ctx, *args):
+    with open('quotes.txt', "r+", encoding = "utf-8") as file:
+        file.seek(0, os.SEEK_END)
+        pos = file.tell() - 1
+        while pos > 0 and file.read(1) != "\n":
+            pos -= 1
+            file.seek(pos, os.SEEK_SET)
+        if pos > 0:
+            file.seek(pos, os.SEEK_SET)
+            file.truncate()
+    await ctx.channel.send("quote deleted.")
+
 @client.command()
 async def recommend(ctx, *args): 
     with open('recommend.txt', 'r') as f:
@@ -149,6 +182,36 @@ async def recommend(ctx, *args):
         await ctx.channel.send(recs[choice * 2])
         await ctx.channel.send(recs[(choice * 2)+ 1])
       
+@client.command()
+@commands.has_role('Ya Boi')
+async def recommends(ctx):
+    await ctx.send(file=discord.File('recommend.txt'))
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def newrec(ctx, *args):
+    lines = (" ".join(args)).split("*")
+    f = open("recommend.txt", "a")
+    f.write("\n" + lines[0] + "\n" + lines[1])
+    f.close()
+    await ctx.channel.send("new rec added: `" + lines[0] + " \n " + lines[1] + "`")
+
+#https://stackoverflow.com/questions/1877999/delete-final-line-in-file-with-python
+@client.command()
+@commands.has_role('Ya Boi')
+async def deleterec(ctx, *args):
+    with open('recommend.txt', "r+", encoding = "utf-8") as file:
+        for i in range(2):
+            file.seek(0, os.SEEK_END)
+            pos = file.tell() - 1
+            while pos > 0 and file.read(1) != "\n":
+                pos -= 1
+                file.seek(pos, os.SEEK_SET)
+            if pos > 0:
+                file.seek(pos, os.SEEK_SET)
+                file.truncate()
+    await ctx.channel.send("recommendation deleted.")
+
         
 @client.command()
 @commands.has_role('Ya Boi')
@@ -161,7 +224,7 @@ async def stage(ctx, *args):
     time = args[1]
 
     try:
-        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S")
+        dateTime = pytz.UTC.localize(datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S"))
     except:
         await ctx.channel.send("Date and time incorrect. Format: `y-m-d h:m:s`" )
         return
@@ -172,9 +235,10 @@ async def stage(ctx, *args):
 
     else:
         for i in  range(2, len(args)):
-            if args[i] == "everyone":
+            if args[i] == "@":
                  message = message + "@everyone "
-            message = message + args[i] + " "
+            else:
+                message = message + args[i] + " "
     
     allowed_mentions = discord.AllowedMentions(everyone = True)
     messageList[dateTime] = message
@@ -210,7 +274,7 @@ async def dropstage(ctx, *args):
         await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
 
 
-@tasks.loop(minutes=5.0)
+@tasks.loop(minutes=3.0)
 async def sendTimedMessages():
     print("timed")
     server = client.guilds[0]
