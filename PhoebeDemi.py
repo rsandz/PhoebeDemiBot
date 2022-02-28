@@ -35,8 +35,20 @@ colour_roles = {
 }
 colour_emoji_list = colour_roles.keys()
 
+answers = [
+    "absolutely!",
+    "yes",
+    "possibly...",
+    "not sure...",
+    "don't count on it",
+    "no",
+    "definitely not!"
+]
+
 timezone_offset = -7.0
 tzinfo = timezone(timedelta(hours=timezone_offset))
+
+#========================================================================================#
 
 @client.event
 async def on_ready():
@@ -108,26 +120,11 @@ async def on_raw_reaction_remove(payload):
 
 @client.command()
 async def question(ctx, *args):
-    answer = random.randint(0,6)
-
     if len(args) < 1:
         await ctx.channel.send("you need to ask a question, silly!")
         return
 
-    if answer == 1:
-        await ctx.channel.send("absolutely!")
-    elif answer == 2:
-        await ctx.channel.send("yes")
-    elif answer == 3:
-        await ctx.channel.send("possibly...")
-    elif answer == 4:
-        await ctx.channel.send("not sure...")
-    elif answer == 5:
-        await ctx.channel.send("don't count on it")
-    elif answer == 6: 
-        await ctx.channel.send("no")
-    elif answer == 0:
-        await ctx.channel.send("definitely not!")
+    await ctx.channel.send(random.choice(answers))
 
 
 @client.command()
@@ -184,9 +181,9 @@ async def stage(ctx, *args):
 
 @client.command()
 @commands.has_role('Ya Boi')
-async def stageList(ctx):
+async def stagelist(ctx):
     if len(messageList) == 0:
-        await ctx.channel.send("No messages staged")
+        await ctx.channel.send("`No messages staged`")
         return
     for message in messageList:
         await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
@@ -194,7 +191,7 @@ async def stageList(ctx):
 
 @client.command()
 @commands.has_role('Ya Boi')
-async def dropStage(ctx, *args):
+async def dropstage(ctx, *args):
     date = args[0]
     time = args[1]
     try:
@@ -204,10 +201,11 @@ async def dropStage(ctx, *args):
         await ctx.channel.send("That doesn't exist")
 
     await ctx.channel.send("Stage List:" )
+    if len(messageList) == 0:
+        await ctx.channel.send("`No messages staged`")
+        return
     for message in messageList:
         await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
-
-
 
 
 @tasks.loop(minutes=5.0)
