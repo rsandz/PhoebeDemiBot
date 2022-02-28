@@ -223,7 +223,7 @@ async def stage(ctx, *args):
     time = args[1]
 
     try:
-        dateTime = pytz.UTC.localize(datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S"))
+        dateTime = tzinfo.localize(datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S"))
     except:
         await ctx.channel.send("Date and time incorrect. Format: `y-m-d h:m:s`" )
         return
