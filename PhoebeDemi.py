@@ -260,7 +260,7 @@ async def dropstage(ctx, *args):
     date = args[0]
     time = args[1]
     try:
-        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S").astimezone(tzinfo)
+        dateTime = datetime.strptime(date + " " + time, "%Y-%m-%d %H:%M:%S").astimezone(timezone.utc)
         del messageList[dateTime]
     except:
         await ctx.channel.send("That doesn't exist")
@@ -273,7 +273,7 @@ async def dropstage(ctx, *args):
         await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`" )
 
 
-@tasks.loop(minutes=3.0)
+@tasks.loop(seconds=30.0)
 async def sendTimedMessages():
     print("timed")
     server = client.guilds[0]
@@ -295,7 +295,7 @@ async def clear(ctx, amount = 1000):
 @client.command()
 @commands.has_role('Ya Boi')
 async def time(ctx):
-     await ctx.channel.send("The current bot time is: `" + str(datetime.now(tzinfo)) + "`")
+     await ctx.channel.send("The current bot time is: `" + str(datetime.now(timezone.utc)) + "`")
 
 client.run(os.getenv('DISCORD_TOKEN'))
 
