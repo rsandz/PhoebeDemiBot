@@ -1,4 +1,3 @@
-from ast import arg
 import discord
 from discord.utils import get
 from discord.ext import tasks, commands
@@ -6,8 +5,6 @@ import os
 from dotenv import load_dotenv
 import random
 from datetime import datetime
-
-from torch import rand
 
 intents = discord.Intents.default()
 intents.members = True
@@ -175,7 +172,7 @@ async def stage(ctx, *args):
 
     else:
         for i in  range(2, len(args)):
-            message = message + args[i]
+            message = message + args[i] + " "
     
     allowed_mentions = discord.AllowedMentions(everyone = True)
     messageList[dateTime] = message
@@ -210,7 +207,7 @@ async def dropStage(ctx, *args):
 
 
 
-@tasks.loop(minutes=5.0)
+@tasks.loop(seconds=5.0)
 async def sendTimedMessages():
     print("timed")
     server = client.guilds[0]
