@@ -172,6 +172,8 @@ async def stage(ctx, *args):
 
     else:
         for i in  range(2, len(args)):
+            if args[i] == "everyone":
+                 message = message + "@everyone "
             message = message + args[i] + " "
     
     allowed_mentions = discord.AllowedMentions(everyone = True)
@@ -230,7 +232,7 @@ async def clear(ctx, amount = 1000):
 @client.command()
 @commands.has_role('Ya Boi')
 async def time(ctx):
-     await ctx.channel.send("The current bot time is: " + str(datetime.now(tzinfo)))
+     await ctx.channel.send("The current bot time is: `" + str(datetime.now(tzinfo)) + "`")
 
 client.run(os.getenv('DISCORD_TOKEN'))
 
