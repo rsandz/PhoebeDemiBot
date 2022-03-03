@@ -52,13 +52,37 @@ answers = [
 timezone_offset = -7.0
 tzinfo = timezone(timedelta(hours=timezone_offset))
 
+
+# ========== HELPER FUNCTIONS ========== #
+
+def storeStaged():
+    f = open('staged.txt', 'w')
+    for message in messageList.keys():
+        f.write(str(message) + '\n')
+        f.write(messageList[message])
+    f.close()
+
+
+def getStaged():
+    with open('staged.txt', 'r') as f:
+        lines = f.readlines()
+        holder = ""
+        for i in range(len(lines)):
+            if i % 2 == 0:
+                holder =  datetime.strptime(lines[i][:-7], "%Y-%m-%d %H:%M:%S").astimezone(tzinfo)
+            else:
+                messageList[holder] = lines[i]
+
+
 #========================================================================================#
+
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     sendTimedMessages.start()
 
+# Sneding a message when a member joins
 @client.event
 async def on_member_join(member):
     channel = client.get_channel(int(welcome_channel))
@@ -69,6 +93,7 @@ async def on_member_join(member):
     message = "Hello {member.mention}! Welcome to the Official Warp Speed and Witchcraft Server! Consider checking out {rules.mention}, giving yourself a role in {role.mention}, and introducing yourself in {intro.mention}!"
     await channel.send(message.format(member = member, rules = rules, intro = intro, role = role))
 
+# Detection for roles pickers
 @client.event
 async def on_raw_reaction_add(payload):
     message_id = payload.message_id
@@ -105,7 +130,8 @@ async def on_raw_reaction_add(payload):
                 await message.remove_reaction('✨', member)
             await member.add_roles(future_role)
     
-    
+
+# Detection for removing a role 
 @client.event
 async def on_raw_reaction_remove(payload):
     message_id = payload.message_id
@@ -132,6 +158,7 @@ async def on_raw_reaction_remove(payload):
             await member.remove_roles(role)
 
 
+# generates a random answer
 @client.command()
 async def question(ctx, *args):
     if len(args) < 1:
@@ -140,6 +167,7 @@ async def question(ctx, *args):
 
     await ctx.channel.send(random.choice(answers))
 
+# ========== QUOTES ========== #
 
 @client.command()
 async def quote(ctx, *args): 
@@ -186,6 +214,8 @@ async def deletequote(ctx, *args):
             file.truncate()
     await ctx.channel.send("quote deleted.")
 
+# ========== RECOMMENDS ========== #
+
 @client.command()
 async def recommend(ctx, *args): 
     with open('recommend.txt', 'r') as f:
@@ -224,7 +254,8 @@ async def deleterec(ctx, *args):
                 file.truncate()
     await ctx.channel.send("recommendation deleted.")
 
-        
+# ========== STAGED MESSAGES ========== #
+
 @client.command()
 @commands.has_role('Ya Boi')
 async def stage(ctx, *args):
@@ -297,6 +328,8 @@ async def sendTimedMessages():
             del messageList[message]
             return
 
+
+# ========== OTHER ========== #
 
 # https://stackoverflow.com/questions/43465082/python-discord-py-delete-all-messages-in-a-text-channel
 @client.command(pass_context = True)
