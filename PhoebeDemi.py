@@ -17,6 +17,9 @@ gender_message = os.getenv('GENDER_MESSAGE')
 creator_message = os.getenv('CREATOR_MESSAGE')
 colour_message = os.getenv('COLOUR_MESSAGE')
 welcome_channel = os.getenv('WELCOME_CHANNEL')
+rules_channel = os.getenv('RULES_CHANNEL')
+roles_channel = os.getenv('ROLES_CHANNEL') 
+intro_channel = os.getenv('INTRO_CHANNEL')
 server_id = os.getenv('SERVER_ID')
 
 messageList = {}
@@ -58,11 +61,10 @@ async def on_ready():
 
 @client.event
 async def on_member_join(member):
-    server = client.guilds[0]
     channel = client.get_channel(int(welcome_channel))
-    rules = get(server.channels, name='rules')
-    intro = get(server.channels, name='introduce-yourself')
-    role = get(server.channels, name='role-picker')
+    rules = client.get_channel(int(rules_channel))
+    intro = client.get_channel(int(intro_channel))
+    role = client.get_channel(int(roles_channel))
 
     message = "Hello {member.mention}! Welcome to the Official Warp Speed and Witchcraft Server! Consider checking out {rules.mention}, giving yourself a role in {role.mention}, and introducing yourself in {intro.mention}!"
     await channel.send(message.format(member = member, rules = rules, intro = intro, role = role))
@@ -71,6 +73,7 @@ async def on_member_join(member):
 async def on_raw_reaction_add(payload):
     message_id = payload.message_id
     emoji = payload.emoji.name
+    channel = client.get_channel(payload.channel_id)
     server = client.get_guild(int(server_id))
     member = server.get_member(payload.user_id)
 
@@ -88,9 +91,19 @@ async def on_raw_reaction_add(payload):
     
     # colour roles
     if message_id == int(colour_message):
-        if emoji in colour_emoji_list:
-            role = get(server.roles, name=colour_roles[emoji])
-            await member.add_roles(role)
+        future_role =  get(server.roles, name='From the Far Future')
+        realm_role = get(server.roles, name='From Another Realm')
+        message = await channel.fetch_message(payload.message_id)
+        if emoji == '✨':
+            if future_role in member.roles:
+                await member.remove_roles(future_role)
+                await message.remove_reaction('🚀', member)
+            await member.add_roles(realm_role)
+        if emoji == '🚀':
+            if realm_role in member.roles:
+                await member.remove_roles(realm_role)
+                await message.remove_reaction('✨', member)
+            await member.add_roles(future_role)
     
     
 @client.event
