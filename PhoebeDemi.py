@@ -20,6 +20,7 @@ welcome_channel = os.getenv('WELCOME_CHANNEL')
 rules_channel = os.getenv('RULES_CHANNEL')
 roles_channel = os.getenv('ROLES_CHANNEL') 
 intro_channel = os.getenv('INTRO_CHANNEL')
+announce_channel = os.getenv('ANNOUNCE_CHANNEL')
 server_id = os.getenv('SERVER_ID')
 
 messageList = {}
@@ -49,8 +50,7 @@ answers = [
     "definitely not!"
 ]
 
-timezone_offset = -7.0
-tzinfo = timezone(timedelta(hours=timezone_offset))
+tzinfo = pytz.timezone("America/Edmonton")
 
 
 # ========== HELPER FUNCTIONS ========== #
@@ -59,7 +59,7 @@ def storeStaged():
     f = open('staged.txt', 'w')
     for message in messageList.keys():
         f.write(str(message) + '\n')
-        f.write(messageList[message])
+        f.write(messageList[message] + '\n')
     f.close()
 
 
@@ -71,7 +71,7 @@ def getStaged():
             if i % 2 == 0:
                 holder =  datetime.strptime(lines[i][:-7], "%Y-%m-%d %H:%M:%S").astimezone(tzinfo)
             else:
-                messageList[holder] = lines[i]
+                messageList[holder] = lines[i].rstrip()
 
 
 #========================================================================================#
@@ -80,6 +80,7 @@ def getStaged():
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+    getStaged()
     sendTimedMessages.start()
 
 # Sneding a message when a member joins
@@ -285,6 +286,7 @@ async def stage(ctx, *args):
     
     allowed_mentions = discord.AllowedMentions(everyone = True)
     messageList[dateTime] = message
+    storeStaged()
     await ctx.channel.send("Staged Message: " + "`" + str(dateTime) + " : " + messageList[dateTime] + "`", allowed_mentions = allowed_mentions)
 
 
@@ -323,7 +325,7 @@ async def sendTimedMessages():
     server = client.guilds[0]
     for message in messageList:
         if message <= datetime.now(tzinfo):
-            channel = get(server.channels, name='announcements')
+            channel = client.get_channel(int(announce_channel))
             await channel.send(messageList[message])
             del messageList[message]
             return
