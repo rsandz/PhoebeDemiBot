@@ -245,7 +245,7 @@ async def recommends(ctx):
 @client.command()
 @commands.has_role('Ya Boi')
 async def newrec(ctx, *args):
-    lines = (" ".join(args)).split("*")
+    lines = (" ".join(args)).split("$")
     f = open("recommend.txt", "a")
     f.write("\n" + lines[0] + "\n" + lines[1])
     f.close()
