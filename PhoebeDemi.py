@@ -4,7 +4,8 @@ from discord.ext import tasks, commands
 import os
 from dotenv import load_dotenv
 import random
-from datetime import datetime, timezone, timedelta
+import FileHandler as fh
+from datetime import datetime
 import pytz
 
 intents = discord.Intents.default()
@@ -170,11 +171,12 @@ async def question(ctx, *args):
     if len(args) < 1:
         await ctx.channel.send("you need to ask a question, silly!")
         return
-
-    await ctx.channel.send(random.choice(answers))
+    
+    embed=discord.Embed(title=random.choice(answers), color=discord.Color.blue())
+    await ctx.send(embed=embed)
+    #await ctx.channel.send(random.choice(answers))
 
 # ========== QUOTES ========== #
-
 
 @client.command()
 async def quote(ctx, *args):
@@ -184,11 +186,11 @@ async def quote(ctx, *args):
             await ctx.channel.send("I can only give up to 5 quotes at a time.")
             return
         n = int(args[0])
-    with open('quotes.txt', 'r') as f:
-        quotes = [line.strip() for line in f]
-        for i in range(n):
-            quote = random.choice(quotes)
-            await ctx.channel.send(quote)
+    for i in range(n):
+        quote = fh.randomFile('quotes.txt', 1)[0].split("*")
+        embed=discord.Embed(title=quote[0], description=quote[1], color=discord.Color.blue())
+        embed.set_footer(text=quote[2])
+        await ctx.send(embed=embed)
 
 
 @client.command()
@@ -201,39 +203,24 @@ async def quotes(ctx):
 @commands.has_role('Ya Boi')
 async def newquote(ctx, *args):
     line = " ".join(args)
-    f = open("quotes.txt", "a")
-    f.write("\n")
-    f.write(line)
-    f.close()
+    fh.writeFile('quotes.txt', [line])
     await ctx.channel.send("new quote added: `" + line + "`")
-
-# https://stackoverflow.com/questions/1877999/delete-final-line-in-file-with-python
-
 
 @client.command()
 @commands.has_role('Ya Boi')
 async def deletequote(ctx, *args):
-    with open('quotes.txt', "r+", encoding="utf-8") as file:
-        file.seek(0, os.SEEK_END)
-        pos = file.tell() - 1
-        while pos > 0 and file.read(1) != "\n":
-            pos -= 1
-            file.seek(pos, os.SEEK_SET)
-        if pos > 0:
-            file.seek(pos, os.SEEK_SET)
-            file.truncate()
-    await ctx.channel.send("quote deleted.")
+    fh.deleteFile('quotes.txt', 1)
+    await ctx.channel.send("quote deleted")
 
 # ========== RECOMMENDS ========== #
 
 
 @client.command()
 async def recommend(ctx, *args):
-    with open('recommend.txt', 'r') as f:
-        recs = [line.strip() for line in f]
-        choice = random.randint(0, (len(recs) / 2) - 1)
-        await ctx.channel.send(recs[choice * 2])
-        await ctx.channel.send(recs[(choice * 2) + 1])
+    rec = fh.randomFile('recommend.txt', 2)
+    
+    await ctx.channel.send(rec[0])
+    await ctx.channel.send(rec[1])
 
 
 @client.command()
@@ -246,31 +233,46 @@ async def recommends(ctx):
 @commands.has_role('Ya Boi')
 async def newrec(ctx, *args):
     lines = (" ".join(args)).split("$")
-    f = open("recommend.txt", "a")
-    f.write("\n" + lines[0] + "\n" + lines[1])
-    f.close()
+    fh.writeFile('recommend.txt', lines)
     await ctx.channel.send("new rec added: `" + lines[0] + " \n " + lines[1] + "`")
-
-# https://stackoverflow.com/questions/1877999/delete-final-line-in-file-with-python
-
 
 @client.command()
 @commands.has_role('Ya Boi')
 async def deleterec(ctx, *args):
-    with open('recommend.txt', "r+", encoding="utf-8") as file:
-        for i in range(2):
-            file.seek(0, os.SEEK_END)
-            pos = file.tell() - 1
-            while pos > 0 and file.read(1) != "\n":
-                pos -= 1
-                file.seek(pos, os.SEEK_SET)
-            if pos > 0:
-                file.seek(pos, os.SEEK_SET)
-                file.truncate()
-    await ctx.channel.send("recommendation deleted.")
+    fh.deleteFile('recommend.txt', 2)
+    await ctx.channel.send("quote deleted")
+
+# ========== TOPICS ========== #
+
+
+@client.command()
+async def topic(ctx, *args):
+    rec = fh.randomFile('topic.txt', 1)
+    
+    embed=discord.Embed(title=rec[0], color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def topics(ctx):
+    await ctx.send(file=discord.File('topic.txt'))
+
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def newtopic(ctx, *args):
+    lines = (" ".join(args))
+    fh.writeFile('topic.txt', [lines])
+    await ctx.channel.send("new topic added: `" + lines + "`")
+
+@client.command()
+@commands.has_role('Ya Boi')
+async def deletetopic(ctx, *args):
+    fh.deleteFile('topic.txt', 1)
+    await ctx.channel.send("topic deleted")
 
 # ========== STAGED MESSAGES ========== #
-
 
 @client.command()
 @commands.has_role('Ya Boi')
