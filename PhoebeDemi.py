@@ -339,16 +339,16 @@ async def dropstage(ctx, *args):
         await ctx.channel.send("`" + str(message) + " : " + messageList[message] + "`")
 
 
-@tasks.loop(seconds=30.0)
-async def sendTimedMessages():
-    print("timed")
-    server = client.guilds[0]
-    for message in messageList:
-        if message <= datetime.now(tzinfo):
-            channel = client.get_channel(int(announce_channel))
-            await channel.send(messageList[message])
-            del messageList[message]
-            return
+# @tasks.loop(seconds=30.0)
+# async def sendTimedMessages():
+#     print("timed")
+#     server = client.guilds[0]
+#     for message in messageList:
+#         if message <= datetime.now(tzinfo):
+#             channel = client.get_channel(int(announce_channel))
+#             await channel.send(messageList[message])
+#             del messageList[message]
+#             return
 
 
 # ========== OTHER ========== #
