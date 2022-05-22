@@ -364,6 +364,40 @@ async def dropstage(ctx, *args):
 #             del messageList[message]
 #             return
 
+# ========== POINTS ========== #
+
+@client.command()
+async def points(ctx):
+    myRoles = ctx.author.roles
+    rolePoints = 10
+    if (get(ctx.guild.roles, name='Ya Boi') in myRoles):
+        rolePoints = 100000
+    elif (get(ctx.guild.roles, name='SPICY Bubble Tea Buddy') in myRoles):
+        rolePoints = 500
+    elif (get(ctx.guild.roles, name='Bubble Tea Buddy') in myRoles):
+        rolePoints = 250
+    elif (get(ctx.guild.roles, name='Popsicle Pal') in myRoles):
+        rolePoints = 100
+    elif (get(ctx.guild.roles, name='From the Far Future') in myRoles):
+        rolePoints = 20
+    elif (get(ctx.guild.roles, name='From Another Realm') in myRoles):
+        rolePoints = 20
+    
+    agePoints = (datetime.now() - ctx.author.joined_at).days
+
+    messagePoints = 0
+    async for message in ctx.channel.history(limit = 1000):
+        if message.author == ctx.author:
+            messagePoints += 1
+            if messagePoints >= 200:
+                break
+
+    desc = "Total Points: " + str(rolePoints + agePoints + messagePoints)
+    desc += "\n\nRole Points: " + str(rolePoints)
+    desc += "\nTime in Server Points: " + str(agePoints)
+    desc += "\nMessage Points: " + str(messagePoints)
+    embed=discord.Embed(title= ctx.author.name + "'s Points", description=desc, color=discord.Color.blue())
+    await ctx.send(embed=embed)
 
 # ========== OTHER ========== #
 
@@ -378,5 +412,6 @@ async def clear(ctx, amount=1000):
 @commands.has_role('Ya Boi')
 async def time(ctx):
     await ctx.channel.send("The current bot time is: `" + str(datetime.now(tzinfo)) + "`")
+
 
 client.run(os.getenv('DISCORD_TOKEN'))
