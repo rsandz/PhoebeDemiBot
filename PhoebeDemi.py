@@ -25,6 +25,7 @@ announce_channel = os.getenv('ANNOUNCE_CHANNEL')
 server_id = os.getenv('SERVER_ID')
 
 messageList = {}
+topicList = []
 
 gender_roles = {
     '❤️': 'he/him',
@@ -83,7 +84,7 @@ def getStaged():
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     getStaged()
-    sendTimedMessages.start()
+    # sendTimedMessages.start()
 
 # Sneding a message when a member joins
 
@@ -246,10 +247,21 @@ async def deleterec(ctx, *args):
 
 
 @client.command()
-async def topic(ctx, *args):
-    rec = fh.randomFile('topic.txt', 1)
+async def topic(ctx, *args):    
+    global topicList
+    topicsLeft= len(topicList)
+
+    if topicsLeft == 0:
+        topicList = fh.fileToList('topic.txt')
+        topicsLeft= len(topicList)
+    embed=discord.Embed(title=topicList.pop(), color=discord.Color.blue())
     
-    embed=discord.Embed(title=rec[0], color=discord.Color.blue())
+    if topicsLeft - 1 == 1:
+        embed.set_footer(text= str(topicsLeft - 1)+" topic left")
+    elif topicsLeft - 1 == 0:
+         embed.set_footer(text= str(topicsLeft - 1)+" topics left. Reshuffling topics.")
+    else:
+        embed.set_footer(text= str(topicsLeft - 1)+" topics left")
     await ctx.send(embed=embed)
 
 
@@ -264,6 +276,8 @@ async def topics(ctx):
 async def newtopic(ctx, *args):
     lines = (" ".join(args))
     fh.writeFile('topic.txt', [lines])
+    global topicList
+    topicList.insert(random.randrange(len(topicList)+1), lines)
     await ctx.channel.send("new topic added: `" + lines + "`")
 
 @client.command()

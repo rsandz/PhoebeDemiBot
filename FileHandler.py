@@ -3,7 +3,7 @@ import os
 
 def randomFile(filename, n):
     output = []
-    with open(filename, 'r') as f:
+    with open(filename, 'r',  encoding='utf-8') as f:
         lines = [line.strip() for line in f]
         choice = random.randint(0, (len(lines) / n) - 1)
         for x in range(n):
@@ -27,3 +27,9 @@ def deleteFile(filename, n):
             if pos > 0:
                 file.seek(pos, os.SEEK_SET)
                 file.truncate()
+
+def fileToList(filename):
+    with open(filename, 'r',  encoding='utf-8') as f:
+        lines = [line.strip() for line in f]
+        random.shuffle(lines)
+        return lines
