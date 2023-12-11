@@ -8,8 +8,11 @@ import FileHandler as fh
 from datetime import datetime
 import pytz
 
+from llm.DiscordLlm import llm_invoke
+
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 client = commands.Bot(command_prefix='.', intents=intents)
 
@@ -397,6 +400,12 @@ async def points(ctx):
     desc += "\nTime in Server Points: " + str(agePoints)
     desc += "\nMessage Points: " + str(messagePoints)
     embed=discord.Embed(title= ctx.author.name + "'s Points", description=desc, color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+@client.command(pass_context=True)
+async def llm(ctx, *args):
+    desc = await llm_invoke(ctx, *args)
+    embed=discord.Embed(title="Response", description=desc, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
 # ========== OTHER ========== #
