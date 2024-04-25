@@ -1,15 +1,21 @@
+import logging
 import discord
 from discord.utils import get
 from discord.ext import tasks, commands
 import os
 from dotenv import load_dotenv
 import random
+from DiscordLlmDispatcher import DiscordLlmDispatcherFactory
+from phoebe_demi_bot_llm import Context
 import FileHandler as fh
 from datetime import datetime
 import pytz
 
+logging.basicConfig(level=logging.INFO)
+
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 client = commands.Bot(command_prefix='.', intents=intents)
 
@@ -77,7 +83,7 @@ def getStaged():
                 messageList[holder] = lines[i].rstrip()
 
 
-#========================================================================================#
+# ========================================================================================#
 
 
 @client.event
@@ -383,7 +389,7 @@ async def points(ctx):
     elif (get(ctx.guild.roles, name='From Another Realm') in myRoles):
         rolePoints = 20
     
-    agePoints = (datetime.now() - ctx.author.joined_at).days
+    agePoints = (datetime.now().replace(tzinfo=None) - ctx.author.joined_at.replace(tzinfo=None)).days
 
     messagePoints = 0
     async for message in ctx.channel.history(limit = 1000):
@@ -398,6 +404,40 @@ async def points(ctx):
     desc += "\nMessage Points: " + str(messagePoints)
     embed=discord.Embed(title= ctx.author.name + "'s Points", description=desc, color=discord.Color.blue())
     await ctx.send(embed=embed)
+
+# ========== LLM ========== #
+
+@client.command(pass_context=True)
+async def ask(ctx, *args):
+    if "OPENAI_API_KEY" not in os.environ:
+        raise Exception("OPENAI_API_KEY not set")
+
+    tools = [
+        ("points", "Get the user's points"),
+        ("topic", "Get a topic to talk about"),
+        ("recommend", "Get a recommendation to read")
+    ]
+    
+    llm_dispatcher_factory = DiscordLlmDispatcherFactory(discord_client=client)
+    for tool in tools:
+        llm_dispatcher_factory.add_discord_command_as_tool(*tool)
+    llm_dispatcher = llm_dispatcher_factory.build()
+
+    llm_context = Context(
+        discord_context=ctx,
+        msg=" ".join(args),
+        user_name=ctx.author.name
+    )
+
+    try:
+        response = await llm_dispatcher.invoke(llm_context)
+        if response is None:
+            return 
+        print(f"Response: {response}")
+        embed = discord.Embed(title="Response", description=response, color=discord.Color.blue())
+        await ctx.send(embed=embed)
+    except Exception as e:
+        print(e)
 
 # ========== OTHER ========== #
 
